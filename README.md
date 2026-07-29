@@ -121,6 +121,29 @@ The app runs on `http://localhost:4200`.
 - **Phase 7:** Dockerized deployment for personal home server use
 - **Phase 8 (stretch):** Auth, analytics view, stale-application reminders, and packaging for public self-hosted distribution
 
+## Future Integration Idea: Automated Application Ingestion
+
+A separate homelab project is planned that uses an LLM to automatically generate a tailored CV and cover letter for a given job posting, then uploads the resulting documents to a Google Drive folder. Once built, that pipeline could feed applications into this tracker automatically, rather than requiring manual entry:
+
+- The ingestion system already has everything needed at generation time (company, role, source, and the Drive folder it just created) — no PDF-parsing or text-extraction step required on this end.
+- It would call this project's existing REST API directly (`POST /api/applications`), passing `folderLink` as the Drive folder URL. No changes needed to this API to support it — the two systems stay fully decoupled.
+- Worth deciding before building it: how to avoid duplicate tracker entries if the pipeline ever re-runs on the same posting (e.g. matching on company + role + source, or storing the original job posting URL); and confirming this API stays private-network-only if a second automated caller is added, rather than assuming "no auth needed" indefinitely.
+- `status` should likely still default via the schema (`Applied`) rather than being set explicitly by the ingestion pipeline, to keep one consistent source of truth for initial status.
+
+Not scheduled yet — noted here so the reasoning isn't lost before it's picked up.
+
+## Engineering Decisions & Notes
+
+A running log of choices made along the way, and why — mainly for future-me, since some of these aren't obvious from the code alone.
+
+- **Angular file naming (no `.service`/`.component` suffix):** As of Angular 20+, the CLI generates files like `application.ts` (class `Application`) instead of the older `application.service.ts` (class `ApplicationService`). This project keeps the new default rather than restoring the legacy suffix behavior. One side effect worth knowing: the Angular service class (`Application`) and the backend Mongoose model (`Application` in `job-tracker-api/models/Application.js`) now share the same name. This isn't a real conflict — they live in separate projects/folders and are never imported into the same file — but it's worth remembering when reading code or discussing "the Application class," since the name alone doesn't say which one you mean.
+- **MongoDB Atlas over a local instance:** chosen for zero local infrastructure to maintain, at the cost of needing internet access to reach the database during development.
+- **Scoped database user, not admin:** the Atlas database user for this app has `readWrite` access to the `job-tracker` database only — not an admin-level role. Deliberate security hygiene even for a personal project, since it limits the damage if the credential ever leaks (e.g. accidentally committed, or the homelab box is compromised).
+- **DNS override in `server.js`:** `dns.setServers(['1.1.1.1', '8.8.8.8'])` was added because a local AdGuard DNS resolver doesn't reliably handle the SRV DNS record lookups that `mongodb+srv://` connection strings depend on, causing `querySrv ECONNREFUSED` errors. Scoped to this Node process only — doesn't change any system-wide network settings.
+- **Single monorepo, not two GitHub repos:** `job-tracker` (Angular) and `job-tracker-api` (Express) live in one repository rather than being split up, since they'll eventually be built and deployed together via a single `docker-compose.yml` (Phase 7).
+- **Explicit `rootDir` in `tsconfig.app.json`:** added `"rootDir": "./src"` to silence a TypeScript editor warning (`aka.ms/ts6`) caused by a known Angular CLI 22 regression — TypeScript is moving toward requiring `rootDir` to be set explicitly rather than inferring it, and Angular's generated config hadn't caught up yet. Editor-only diagnostic, never affected `ng serve`/`ng build`, but setting it explicitly matches the project's real folder layout and clears the warning.
+- **Port conflicts deferred to Docker, not app code:** the homelab deployment box already has something running on port 3000. Rather than changing the app's default port in code, this will be resolved with a host-to-container port mapping in `docker-compose.yml` (e.g. `"3050:3000"`) when Phase 7 is built — the app itself stays unaware of what port it's exposed as externally.
+
 ## Deployment Notes
 
 This project is designed to run privately on a personal home server — it is not intended to be publicly hosted. If it's ever packaged for others to self-host, that would take the form of a distributable Docker image, not a public-facing site.
