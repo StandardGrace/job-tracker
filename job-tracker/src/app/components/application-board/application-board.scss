@@ -1,0 +1,22 @@
+.board {
+  display: flex;
+  gap: 1rem;
+}
+
+.column {
+  flex: 1;
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+}
+
+.column-list {
+  min-height: 100px;
+}
+
+.card {
+  border: 1px solid #999;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  background: white;
+  cursor: move;
+}

@@ -1,0 +1,32 @@
+<div class="board">
+  @for (status of statuses; track status) {
+    <!-- one column per status -->
+    <div class="column">
+      <h3>{{ status }}</h3>
+
+      <!--
+        cdkDropList: marks this as a valid drop zone
+        [id]: unique identifier so columns can reference each other
+        [cdkDropListData]: the array this drop zone represents
+        [cdkDropListConnectedTo]: lets cards move between all five columns, not just within one
+        (cdkDropListDropped): fires drop() when a card is released here
+      -->
+      <div
+        cdkDropList
+        [id]="status"
+        [cdkDropListData]="columns[status]"
+        [cdkDropListConnectedTo]="statuses"
+        (cdkDropListDropped)="drop($event, status)"
+        class="column-list"
+      >
+        <!-- one draggable card per application in this column -->
+        @for (application of columns[status]; track application._id) {
+          <div class="card" cdkDrag>
+            <strong>{{ application.company }}</strong>
+            <div>{{ application.role }}</div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
