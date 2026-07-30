@@ -8,7 +8,7 @@ Built primarily as a hands-on project to learn Angular (services, reactive forms
 
 | Layer | Technology |
 |---|---|
-| Frontend | Angular (standalone components, Angular CLI) |
+| Frontend | Angular (standalone components, Angular CLI) + Angular CDK (drag-and-drop) |
 | Backend | Express (Node.js) |
 | ODM | Mongoose |
 | Database | MongoDB (Atlas) |
@@ -35,7 +35,10 @@ Each job application is stored as a single MongoDB document containing the compa
 
 - ✅ **Phase 0 — Scaffolding:** Angular app and Express/Mongoose API running side by side, confirmed end-to-end with a `/api/ping` round trip.
 - ✅ **Phase 1 — Data layer:** `Application` schema defined; full REST API built and independently tested via curl/Postman.
-- ⬜ **Phase 2 onward:** Angular UI (list view, forms, Kanban board, document links) not yet built.
+- ✅ **Phase 2 — Angular reads the list:** `ApplicationData` service (HttpClient wrapper) and a plain unstyled list view, confirmed end-to-end against the live API.
+- ✅ **Phase 3 — Create/edit form:** Reactive form for creating applications, plus edit mode wired to `PUT` via component `@Input`/`@Output` communication.
+- ✅ **Phase 4 — Kanban board:** Applications grouped into status columns with Angular CDK drag-and-drop, firing a `PUT` status update on drop.
+- ⬜ **Phase 5 onward:** Document links (folder link + FormArray), status history tracking, polish, and deployment not yet built.
 
 ## API Endpoints
 
@@ -111,6 +114,16 @@ The app runs on `http://localhost:4200`.
 
 > **Note:** `.env` is intentionally excluded from version control (see `.gitignore`). It contains database credentials and should never be committed. If you're setting this up fresh, you'll need your own MongoDB Atlas connection string.
 
+## Planned Enhancement: Enriched Board as Sole Primary View
+
+Decision made after building both the list and the Kanban board: the list is being dropped as a primary view. Reasoning — once each board card shows company, role, and date applied, the only thing the list adds is a status column, which is already communicated for free by which column a card sits in. Drag-and-drop itself also turned out to have limited practical value for a solo, mouse-driven user (it solves a touchscreen problem this project doesn't have); it's being kept mainly because it was a genuine, worthwhile Angular CDK learning rep, not because it's the best day-to-day interaction model.
+
+- **Board becomes the only view on the main page.** The standalone list component stays in the codebase (still a valid `HttpClient`/service rep) but is no longer rendered on the main page. Easy to re-add later (e.g. a dense/printable table, or bulk actions) if a real need for it shows up.
+- **Cards get enriched** to show company, role, date applied, and an Edit button — everything the list's table row had, minus status (redundant on a card already in that column).
+- **Editing** still uses the same `@Output()`/`@Input()` pattern already built — a card's Edit button emits the same event the list's Edit button used to; only the button's location changes.
+- **Sort (`dateApplied`, newest first) and search** — both logged in the previous version of this note — now only need to apply to the board's `columns` data, since there's no second view to keep in sync.
+- **Known open bug to fix as part of this work:** the board doesn't reliably render data fetched on initial load (zoneless Angular change detection — `HttpClient` responses don't automatically trigger a re-render without an explicit `ChangeDetectorRef` call). Same root cause already fixed once in the list component; needs the identical fix applied to the board.
+
 ## Roadmap
 
 - **Phase 2:** Angular service + basic list view
@@ -142,6 +155,7 @@ A running log of choices made along the way, and why — mainly for future-me, s
 - **DNS override in `server.js`:** `dns.setServers(['1.1.1.1', '8.8.8.8'])` was added because a local AdGuard DNS resolver doesn't reliably handle the SRV DNS record lookups that `mongodb+srv://` connection strings depend on, causing `querySrv ECONNREFUSED` errors. Scoped to this Node process only — doesn't change any system-wide network settings.
 - **Single monorepo, not two GitHub repos:** `job-tracker` (Angular) and `job-tracker-api` (Express) live in one repository rather than being split up, since they'll eventually be built and deployed together via a single `docker-compose.yml` (Phase 7).
 - **Explicit `rootDir` in `tsconfig.app.json`:** added `"rootDir": "./src"` to silence a TypeScript editor warning (`aka.ms/ts6`) caused by a known Angular CLI 22 regression — TypeScript is moving toward requiring `rootDir` to be set explicitly rather than inferring it, and Angular's generated config hadn't caught up yet. Editor-only diagnostic, never affected `ng serve`/`ng build`, but setting it explicitly matches the project's real folder layout and clears the warning.
+- **Running on Node.js 24 (LTS), not an odd-numbered "Current" release:** development originally started on Node 25, which turned out to already be end-of-life. Switched to Node 24 (active LTS support through April 2028) via nvm-windows. No dependencies in this project use native/compiled bindings, so the switch required no code changes — just reinstalling `node_modules` in both projects as a precaution.
 - **Port conflicts deferred to Docker, not app code:** the homelab deployment box already has something running on port 3000. Rather than changing the app's default port in code, this will be resolved with a host-to-container port mapping in `docker-compose.yml` (e.g. `"3050:3000"`) when Phase 7 is built — the app itself stays unaware of what port it's exposed as externally.
 
 ## Deployment Notes
