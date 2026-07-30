@@ -1,26 +1,24 @@
-<h2>Applications</h2>
-
-@if (applications.length === 0) {
-  <p>No applications yet.</p>
-} @else {
-  <table>
-    <thead>
+<table>
+  <thead>
+    <tr>
+      <th>Company</th>
+      <th>Role</th>
+      <th>Status</th>
+      <th>Date Applied</th>
+      <th>Edit</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (application of applications; track application._id) {
       <tr>
-        <th>Company</th>
-        <th>Role</th>
-        <th>Status</th>
-        <th>Date Applied</th>
+        <td>{{ application.company }}</td>
+        <td>{{ application.role }}</td>
+        <td>{{ application.status }}</td>
+        <td>{{ application.dateApplied }}</td>
+        <td>
+          <button (click)="onEditClick(application)">Edit</button>
+        </td>
       </tr>
-    </thead>
-    <tbody>
-      @for (application of applications; track application._id) {
-        <tr>
-          <td>{{ application.company }}</td>
-          <td>{{ application.role }}</td>
-          <td>{{ application.status }}</td>
-          <td>{{ application.dateApplied }}</td>
-        </tr>
-      }
-    </tbody>
-  </table>
-}
+    }
+  </tbody>
+</table>

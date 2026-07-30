@@ -1,0 +1,49 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <div>
+    <label for="company">Company</label>
+    <input id="company" type="text" formControlName="company">
+    @if (form.get('company')?.invalid && form.get('company')?.touched) {
+      <span class="error">Company is required</span>
+    }
+  </div>
+
+  <div>
+    <label for="role">Role</label>
+    <input id="role" type="text" formControlName="role">
+    @if (form.get('role')?.invalid && form.get('role')?.touched) {
+      <span class="error">Role is required</span>
+    }
+  </div>
+
+  <div>
+    <label for="status">Status</label>
+    <select id="status" formControlName="status">
+      <option value="Applied">Applied</option>
+      <option value="Screening">Screening</option>
+      <option value="Interview">Interview</option>
+      <option value="Offer">Offer</option>
+      <option value="Rejected">Rejected</option>
+    </select>
+  </div>
+
+  <div>
+    <label for="source">Source</label>
+    <input id="source" type="text" formControlName="source">
+  </div>
+
+  <div>
+    <label for="notes">Notes</label>
+    <textarea id="notes" formControlName="notes"></textarea>
+  </div>
+
+  <div>
+    <label for="folderLink">Folder Link</label>
+    <input id="folderLink" type="url" formControlName="folderLink">
+  </div>
+
+  <button type="submit">{{ editingApplication ? 'Update Application' : 'Add Application' }}</button>
+</form>
+
+@if (submitted) {
+  <p>Application added.</p>
+}

@@ -1,2 +1,3 @@
 <router-outlet></router-outlet>
-<app-application-list></app-application-list>
+<app-application-form [editingApplication]="editingApplication"></app-application-form>
+<app-application-list (editRequested)="onEditRequested($event)"></app-application-list>
