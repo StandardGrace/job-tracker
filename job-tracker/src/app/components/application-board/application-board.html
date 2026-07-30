@@ -20,12 +20,14 @@
         class="column-list"
       >
         <!-- one draggable card per application in this column -->
-        @for (application of columns[status]; track application._id) {
-          <div class="card" cdkDrag>
+    @for (application of columns[status]; track application._id) {
+        <div class="card" cdkDrag>
             <strong>{{ application.company }}</strong>
             <div>{{ application.role }}</div>
-          </div>
-        }
+            <div>Applied: {{ application.dateApplied | date:'mediumDate' }}</div>
+            <button (click)="onEditClick(application)">Edit</button>
+        </div>
+    }
       </div>
     </div>
   }

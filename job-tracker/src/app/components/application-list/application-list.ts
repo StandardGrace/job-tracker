@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
 import { ApplicationData, Application } from '../../services/application-data';
 
 @Component({
@@ -11,11 +11,15 @@ export class ApplicationList implements OnInit {
   @Output() editRequested = new EventEmitter<Application>(); // this component can send events up to whatever parent is using it
   applications: Application[] = [];
 
-  constructor(private applicationData: ApplicationData) {}
+  constructor(
+    private applicationData: ApplicationData,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.applicationData.getAll().subscribe(applications => {
       this.applications = applications;
+      this.cdr.detectChanges();
     });
   }
 
