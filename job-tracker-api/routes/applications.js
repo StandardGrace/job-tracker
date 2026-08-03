@@ -38,7 +38,7 @@ router.put('/:id', async (req, res) => { // PUT route to update an application b
     const application = await Application.findByIdAndUpdate( // Update call
       req.params.id,
       req.body,
-      { new: true, runValidators: true } // options to return the updated document and run validators
+      { returnDocument: 'after', runValidators: true } // options to return the updated document and run validators, changed from new to returnDocument as new is being depricated
     );
     if (!application) {
       return res.status(404).json({ error: 'Application not found' }); // If not found, respond with a 404 status code and an error message
