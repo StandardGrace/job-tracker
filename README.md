@@ -1,4 +1,6 @@
-# Job Application Tracker
+# RatTracer
+
+*Trace your place in the rat race.*
 
 A personal tool for tracking job applications through the hiring pipeline — from application submitted through to offer or rejection — with quick links to related documents (resumes, cover letters, job postings) stored in Google Drive.
 
