@@ -1,0 +1,16 @@
+services:
+  api:
+    build: ./job-tracker-api
+    container_name: rattracer-api
+    restart: unless-stopped
+    env_file:
+      - ./job-tracker-api/.env
+
+  web:
+    build: ./job-tracker
+    container_name: rattracer-web
+    restart: unless-stopped
+    ports:
+      - "3050:80"
+    depends_on:
+      - api

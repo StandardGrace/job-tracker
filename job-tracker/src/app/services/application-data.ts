@@ -23,7 +23,7 @@ export interface Application {
   providedIn: 'root',
 })
 export class ApplicationData {
-  private apiUrl = 'http://localhost:3000/api/applications';
+  private apiUrl = '/api/applications';
   private refreshSource = new Subject<void>();
   refresh$ = this.refreshSource.asObservable();
 
