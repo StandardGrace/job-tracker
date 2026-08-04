@@ -1,26 +1,42 @@
 <button (click)="openCreateModal()">+ Add Application</button>
 
-<div class="board">
-  @for (status of statuses; track status) {
-    <div class="column">
-      <h3>{{ status }}</h3>
-      <div
-        cdkDropList
-        [id]="status"
-        [cdkDropListData]="columns[status]"
-        [cdkDropListConnectedTo]="statuses"
-        (cdkDropListDropped)="drop($event, status)"
-        class="column-list"
-      >
-        @for (application of columns[status]; track application._id) {
-          <div class="card" cdkDrag (click)="openDetailModal(application)">
-            <strong>{{ application.company }}</strong>
-            <div>{{ application.role }}</div>
-            <div>Applied: {{ application.dateApplied | date:'mediumDate' }}</div>
-            <button (click)="$event.stopPropagation(); openEditModal(application)">Edit</button>
-          </div>
-        }
+@if (dragError) {
+  <div class="error-banner">
+    {{ dragError }}
+    <button (click)="dragError = ''">Dismiss</button>
+  </div>
+}
+
+@if (isLoading) {
+  <p>Loading applications...</p>
+} @else if (loadError) {
+  <div class="error-banner">
+    {{ loadError }}
+    <button (click)="loadApplications()">Retry</button>
+  </div>
+} @else {
+  <div class="board">
+    @for (status of statuses; track status) {
+      <div class="column">
+        <h3>{{ status }}</h3>
+        <div
+          cdkDropList
+          [id]="status"
+          [cdkDropListData]="columns[status]"
+          [cdkDropListConnectedTo]="statuses"
+          (cdkDropListDropped)="drop($event, status)"
+          class="column-list"
+        >
+          @for (application of columns[status]; track application._id) {
+            <div class="card" cdkDrag (click)="openDetailModal(application)">
+              <strong>{{ application.company }}</strong>
+              <div>{{ application.role }}</div>
+              <div>Applied: {{ application.dateApplied | date:'mediumDate' }}</div>
+              <button (click)="$event.stopPropagation(); openEditModal(application)">Edit</button>
+            </div>
+          }
+        </div>
       </div>
-    </div>
-  }
-</div>
+    }
+  </div>
+}

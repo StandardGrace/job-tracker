@@ -15,6 +15,9 @@ import { ApplicationDetail } from '../application-detail/application-detail';
 export class ApplicationBoard implements OnInit {
   statuses = ['Applied', 'Screening', 'Interview', 'Offer', 'Rejected'];
   columns: { [key: string]: Application[] } = {};
+  isLoading = true;
+  loadError = '';
+  dragError = '';
 
   constructor(
     private applicationData: ApplicationData,
@@ -29,10 +32,20 @@ export class ApplicationBoard implements OnInit {
     });
   }
 
-  private loadApplications(): void {
-    this.applicationData.getAll().subscribe(applications => {
-      this.groupByStatus(applications);
-      this.cdr.detectChanges();
+  loadApplications(): void {
+    this.isLoading = true;
+    this.loadError = '';
+    this.applicationData.getAll().subscribe({
+      next: applications => {
+        this.groupByStatus(applications);
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.loadError = 'Could not load applications. Check your connection and try again.';
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -57,18 +70,36 @@ export class ApplicationBoard implements OnInit {
   drop(event: CdkDragDrop<Application[]>, newStatus: string): void {
     if (event.previousContainer === event.container) {
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
-    } else {
-      transferArrayItem(
-        event.previousContainer.data,
-        event.container.data,
-        event.previousIndex,
-        event.currentIndex
-      );
-
-      const movedApplication = event.container.data[event.currentIndex];
-      if (movedApplication._id) {
-        this.applicationData.update(movedApplication._id, { status: newStatus }).subscribe();
-      }
+      return;
     }
+
+    transferArrayItem(
+      event.previousContainer.data,
+      event.container.data,
+      event.previousIndex,
+      event.currentIndex
+    );
+
+    const movedApplication = event.container.data[event.currentIndex];
+    if (!movedApplication._id) {
+      return;
+    }
+
+    this.dragError = '';
+    this.applicationData.update(movedApplication._id, { status: newStatus }).subscribe({
+      next: () => {
+        // already moved optimistically — nothing more to do
+      },
+      error: () => {
+        transferArrayItem(
+          event.container.data,
+          event.previousContainer.data,
+          event.currentIndex,
+          event.previousIndex
+        );
+        this.dragError = 'Could not update status — check your connection. The card has been moved back.';
+        this.cdr.detectChanges();
+      }
+    });
   }
 }

@@ -43,8 +43,12 @@
     <input id="folderLink" type="url" formControlName="folderLink">
   </div>
 
+  @if (submitError) {
+    <div class="error-banner">{{ submitError }}</div>
+  }
+
   <div>
     <button type="submit">{{ editingApplication ? 'Update Application' : 'Add Application' }}</button>
-    <button type="button" (mousedown)="onCancel()">Cancel</button> <!-- Use mousedown instead of click to prevent the form from submitting when canceling -->
+    <button type="button" (mousedown)="onCancel()">Cancel</button>
   </div>
 </form>
