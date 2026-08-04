@@ -154,7 +154,28 @@ Create/edit and the read-only card detail view (status history + folder link) bo
 - **Phase 5:** Document links (Drive folder + additional links)
 - **Phase 6:** Automatic status history tracking, empty/loading/error states
 - **Phase 7:** Dockerized deployment for personal home server use
-- **Phase 8 (stretch):** Auth, analytics view, stale-application reminders, and packaging for public self-hosted distribution
+- **Phase 8 (stretch) — packaging for public self-hosted distribution:** not started; broken down below so the actual size of the gap is clear, not just "auth and some polish."
+
+### Phase 8 breakdown
+
+**Already close to public-ready, little to no extra work:** the container setup itself has no hardcoded personal values — `apiUrl` is a relative path, the Mongo connection string is externalized via `.env`, nothing is baked into the images that would need to change for someone else running this.
+
+**Small — an evening or two each:**
+- `.env.example` — a template showing which environment variables are needed, without real values. Doesn't exist yet.
+- Configurable host port — `3050` is currently hardcoded in `docker-compose.yml`, chosen specifically to avoid conflicts with *this* homelab's other containers. Should become an env var with a sensible default.
+- A `LICENSE` file — currently none; non-negotiable for anything meant to be genuinely cloneable.
+- Docker `HEALTHCHECK` directives on both services, reusing `/api/ping` for the API. Solves a real gap: a container can be "running" while functionally broken (e.g. Mongo connection silently dead) — `restart: unless-stopped` alone can't catch that, since the process never actually exits. Also unlocks changing `depends_on` to the `condition: service_healthy` form, so `web` genuinely waits for `api` to report healthy (not just started) before coming up — plugging a gap noted when `docker-compose.yml` was first written.
+- A public-facing README pass — the current one is written for future-me (the Engineering Decisions log is a diary, not onboarding); a stranger needs a zero-context Quick Start plus explicit warnings about what security work hasn't been done yet.
+
+**The real one — authentication.** Currently zero auth anywhere; anyone who can reach the API can read, edit, or delete everything. Acceptable only because this instance sits on a private homelab network. Touches real surface area on both sides: user model + password hashing on the backend, protecting every existing route, a login screen + token handling in Angular, route guards. Comparable in size to the Kanban board phase, maybe larger.
+
+**Medium — a real focused push:**
+- CI to build and publish images automatically (GitHub Actions → Docker Hub/GHCR). Worth doing as **multi-architecture** builds (amd64 + arm64) if this is meant to be genuinely useful to the self-hosting community, since a lot of that crowd runs Raspberry Pi-class hardware.
+- A security hardening pass — rate limiting (currently none), and tightening CORS (currently wide open, harmless today since browser and API share an origin via the nginx proxy, but worth revisiting for unknown deployments).
+
+**A real design decision, not just effort:** setup currently assumes an existing MongoDB Atlas account. Bundling an optional local MongoDB container into `docker-compose.yml` would let `docker compose up` alone produce a fully working instance with zero external signups — a genuine adoption win, at the cost of maintaining two deployment paths and a persistent volume.
+
+**Bottom line:** everything above except auth is roughly comparable in total size to the Docker deployment work already done — a handful of focused sessions. Auth alone is close to its own phase. The bundled-Mongo option and CI are genuinely optional polish, not blockers for a responsible public v1.
 
 ## Future Integration Idea: Automated Application Ingestion
 
