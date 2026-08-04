@@ -88,7 +88,7 @@ export class ApplicationBoard implements OnInit {
     this.dragError = '';
     this.applicationData.update(movedApplication._id, { status: newStatus }).subscribe({
       next: () => {
-        // already moved optimistically — nothing more to do
+        this.applicationData.notifyChanged();
       },
       error: () => {
         transferArrayItem(
