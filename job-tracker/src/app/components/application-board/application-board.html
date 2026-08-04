@@ -13,11 +13,11 @@
         class="column-list"
       >
         @for (application of columns[status]; track application._id) {
-          <div class="card" cdkDrag>
+          <div class="card" cdkDrag (click)="openDetailModal(application)">
             <strong>{{ application.company }}</strong>
             <div>{{ application.role }}</div>
             <div>Applied: {{ application.dateApplied | date:'mediumDate' }}</div>
-            <button (click)="openEditModal(application)">Edit</button>
+            <button (click)="$event.stopPropagation(); openEditModal(application)">Edit</button>
           </div>
         }
       </div>

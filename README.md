@@ -38,7 +38,8 @@ Each job application is stored as a single MongoDB document containing the compa
 - ✅ **Phase 2 — Angular reads the list:** `ApplicationData` service (HttpClient wrapper) and a plain unstyled list view, confirmed end-to-end against the live API.
 - ✅ **Phase 3 — Create/edit form:** Reactive form for creating applications, plus edit mode wired to `PUT` via component `@Input`/`@Output` communication.
 - ✅ **Phase 4 — Kanban board:** Applications grouped into status columns with Angular CDK drag-and-drop, firing a `PUT` status update on drop. Later redesigned as the app's sole primary view — the standalone list was dropped in favor of enriching board cards directly (company, role, date applied, Edit button); see Engineering Decisions for the reasoning. A zoneless Angular change-detection bug affecting initial render was also found and fixed here.
-- ⬜ **Phase 5 onward:** Document links (folder link + FormArray), status history tracking, polish, and deployment not yet built.
+- ✅ **Phase 5 — Documents (MVP scope):** `folderLink` on each application, a read-only detail modal (`@angular/cdk/dialog`) showing the status history timeline and a folder-link button, and backend logic so `PUT` actually appends to `statusHistory` when a drag-and-drop status change happens. The `documents` FormArray (individually-labeled résumé/cover-letter/job-posting links) was descoped from this phase — the shared Drive folder link already covers that need for now; moved to its own backlog ticket for a post-MVP pass.
+- ⬜ **Phase 6 onward:** Board sort/search, empty/loading/error states, and deployment not yet built.
 
 ## API Endpoints
 
@@ -132,17 +133,13 @@ The app runs on `http://localhost:4200`.
 
 > **Note:** `.env` is intentionally excluded from version control (see `.gitignore`). It contains database credentials and should never be committed. If you're setting this up fresh, you'll need your own MongoDB Atlas connection string.
 
-## Planned Enhancement: Board Sort, Search & Card Detail Modal
+## Planned Enhancement: Board Sort & Search
 
-**Update:** create/edit now happens through a modal (`@angular/cdk/dialog`), not a standing on-page form — see Engineering Decisions for why. That proves out the CDK Dialog pattern for the still-pending piece below.
-
-Not yet built:
+Create/edit and the read-only card detail view (status history + folder link) both now happen through modals (`@angular/cdk/dialog`) — see Engineering Decisions for the architecture. Not yet built:
 
 - **Sort each column by `dateApplied`, newest first** — rather than whatever order MongoDB happens to return.
 - **A search box to filter the board down** ("drill-down by search"), most likely by company name.
 - **Technical note for whoever builds this (probably future-me):** Angular CDK's drag-and-drop is sensitive to the exact array reference passed via `[cdkDropListData]`. Filtering should hide non-matching cards for *display* rather than generating a new filtered array on every keystroke — regenerating the underlying array mid-drag can break CDK's drag mechanics. The `columns` data structure driving drag-and-drop should stay untouched; search should only affect what's visible.
-- **Card detail modal (a second, separate modal from the create/edit one)** — clicking a card should open a *read-only* view showing the status change timeline and the folder link. Blocked on the `PUT` route actually appending to `statusHistory` on status change (only the `POST` route seeds an initial entry so far — see Engineering Decisions).
-- **Scope clarified:** the release bar for "actually useful, not just a demo" is: date applied visible on the card (done), the folder link visible/clickable (not yet), and the status-change story visible in the detail modal (blocked on the above). Per-document links (résumé/cover letter/job posting as separate entries) were considered and explicitly **descoped from MVP** — the shared Drive folder link already gets you to those documents; a `documents` FormArray for individually-labeled links is real value for a post-MVP version, not required for release. Moved to its own backlog ticket.
 
 ## Roadmap
 

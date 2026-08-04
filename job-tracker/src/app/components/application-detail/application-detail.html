@@ -1,0 +1,26 @@
+<div class="detail">
+  <h2>{{ application.company }}</h2>
+  <div class="role">{{ application.role }}</div>
+
+  @if (application.folderLink) {
+    <a class="folder-button" [href]="application.folderLink" target="_blank" rel="noopener noreferrer">
+      📁 Open Folder
+    </a>
+  }
+
+  <h3>Status History</h3>
+  @if (application.statusHistory && application.statusHistory.length > 0) {
+    <ul class="timeline">
+      @for (entry of application.statusHistory; track $index) {
+        <li>
+          <strong>{{ entry.status }}</strong>
+          — {{ entry.date | date:'mediumDate' }}
+        </li>
+      }
+    </ul>
+  } @else {
+    <p>No status history yet.</p>
+  }
+
+  <button (click)="close()">Close</button>
+</div>

@@ -2,6 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs'; // Importing necessary modules from RxJS to handle asynchronous data streams and events between components.
 
+export interface StatusHistoryEntry {
+  status: string;
+  date: string;
+}
+
 export interface Application {
   _id?: string;
   company: string;
@@ -11,6 +16,7 @@ export interface Application {
   source?: string;
   notes?: string;
   folderLink?: string;
+  statusHistory?: StatusHistoryEntry[];
 }
 
 @Injectable({

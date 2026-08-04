@@ -14,7 +14,7 @@ router.get('/', async (req, res) => { // GET route to fetch all applications
 router.post('/', async (req, res) => { // POST route to create a new application
   try {
     const application = new Application(req.body); // Create a new Application instance with the request body
-    application.statusHistory.push({ status: application.status, date: application.dateApplied }); // Add the initial status to the statusHistory array
+    application.statusHistory.push({ status: application.status, date: application.dateApplied });
     const saved = await application.save(); // Save the application to the database
     res.status(201).json(saved); // Respond with the saved application and a 201 status code
   } catch (err) { // error handling
@@ -36,15 +36,22 @@ router.get('/:id', async (req, res) => { // GET route to fetch a single applicat
 
 router.put('/:id', async (req, res) => { // PUT route to update an application by ID
   try {
-    const application = await Application.findByIdAndUpdate( // Update call
-      req.params.id,
-      req.body,
-      { returnDocument: 'after', runValidators: true } // options to return the updated document and run validators, changed from new to returnDocument as new is being depricated
-    );
+    const application = await Application.findById(req.params.id); // Fetch the current document first
+
     if (!application) {
-      return res.status(404).json({ error: 'Application not found' }); // If not found, respond with a 404 status code and an error message
+      return res.status(404).json({ error: 'Application not found' });
     }
-    res.json(application);
+
+    const statusChanged = req.body.status && req.body.status !== application.status; // Compare before overwriting
+
+    application.set(req.body); // Apply only the fields present in req.body
+
+    if (statusChanged) {
+      application.statusHistory.push({ status: application.status, date: new Date() }); // Log the change
+    }
+
+    const saved = await application.save(); // .save() runs full validation automatically — no runValidators option needed
+    res.json(saved);
   } catch (err) { // error handling
     res.status(400).json({ error: err.message });
   }

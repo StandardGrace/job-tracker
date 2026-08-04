@@ -4,6 +4,7 @@ import { DatePipe } from '@angular/common';
 import { Dialog } from '@angular/cdk/dialog';
 import { ApplicationData, Application } from '../../services/application-data';
 import { ApplicationForm } from '../application-form/application-form';
+import { ApplicationDetail } from '../application-detail/application-detail';
 
 @Component({
   selector: 'app-application-board',
@@ -47,6 +48,10 @@ export class ApplicationBoard implements OnInit {
 
   openEditModal(application: Application): void {
     this.dialog.open(ApplicationForm, { data: application });
+  }
+
+  openDetailModal(application: Application): void {
+    this.dialog.open(ApplicationDetail, { data: application });
   }
 
   drop(event: CdkDragDrop<Application[]>, newStatus: string): void {
