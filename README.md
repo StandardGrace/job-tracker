@@ -146,6 +146,14 @@ Create/edit and the read-only card detail view (status history + folder link) bo
 - **A search box to filter the board down** ("drill-down by search"), most likely by company name.
 - **Technical note for whoever builds this (probably future-me):** Angular CDK's drag-and-drop is sensitive to the exact array reference passed via `[cdkDropListData]`. Filtering should hide non-matching cards for *display* rather than generating a new filtered array on every keystroke — regenerating the underlying array mid-drag can break CDK's drag mechanics. The `columns` data structure driving drag-and-drop should stay untouched; search should only affect what's visible.
 
+## Planned Enhancement: Archive / Remove Applications
+
+Not yet built. Motivated by the realistic ghosting rate on job applications (informal observation: roughly 95% of applications never get a response) — without a way to clear these out, the Applied column becomes a graveyard of dead entries over time.
+
+- **Lean toward archive over hard delete**, even though `DELETE /api/applications/:id` already exists on the backend (unused in the UI so far). Reasoning: the backlog already includes an Analytics View (response rate, time-in-stage) — a permanently deleted application can never contribute to that number, so "applied to 100, heard back from 5" only stays computable if the 95 that ghosted still exist somewhere, just hidden from daily view. Deleting now would quietly undermine a feature already planned for later.
+- Likely needs: an `archived` (or similar) flag on the schema, board filtering to hide archived cards by default, and some way to still view/un-archive them when wanted.
+- No urgency — logging this now so the reasoning isn't lost before it's picked up; tickets to be written later.
+
 ## Roadmap
 
 - **Phase 2:** Angular service + basic list view
