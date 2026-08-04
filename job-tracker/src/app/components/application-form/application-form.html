@@ -1,3 +1,5 @@
+<h3>{{ editingApplication ? 'Edit Application' : 'Add Application' }}</h3>
+
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
   <div>
     <label for="company">Company</label>
@@ -41,9 +43,8 @@
     <input id="folderLink" type="url" formControlName="folderLink">
   </div>
 
-  <button type="submit">{{ editingApplication ? 'Update Application' : 'Add Application' }}</button>
+  <div>
+    <button type="submit">{{ editingApplication ? 'Update Application' : 'Add Application' }}</button>
+    <button type="button" (mousedown)="onCancel()">Cancel</button> <!-- Use mousedown instead of click to prevent the form from submitting when canceling -->
+  </div>
 </form>
-
-@if (submitted) {
-  <p>Application added.</p>
-}

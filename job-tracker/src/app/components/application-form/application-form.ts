@@ -1,5 +1,6 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { ApplicationData, Application } from '../../services/application-data';
 
 @Component({
@@ -8,15 +9,14 @@ import { ApplicationData, Application } from '../../services/application-data';
   templateUrl: './application-form.html',
   styleUrl: './application-form.scss'
 })
-export class ApplicationForm implements OnChanges {
-  @Input() editingApplication: Application | null = null;
-
+export class ApplicationForm {
   form: FormGroup;
-  submitted = false;
 
   constructor(
     private fb: FormBuilder,
-    private applicationData: ApplicationData
+    private applicationData: ApplicationData,
+    private dialogRef: DialogRef,
+    @Inject(DIALOG_DATA) public editingApplication: Application | null
   ) {
     this.form = this.fb.group({
       company: ['', Validators.required],
@@ -26,9 +26,7 @@ export class ApplicationForm implements OnChanges {
       notes: [''],
       folderLink: ['']
     });
-  }
 
-  ngOnChanges(): void {
     if (this.editingApplication) {
       this.form.patchValue(this.editingApplication);
     }
@@ -42,13 +40,18 @@ export class ApplicationForm implements OnChanges {
 
     if (this.editingApplication?._id) {
       this.applicationData.update(this.editingApplication._id, this.form.value).subscribe(() => {
-        this.submitted = true;
+        this.applicationData.notifyChanged();
+        this.dialogRef.close();
       });
     } else {
       this.applicationData.create(this.form.value).subscribe(() => {
-        this.submitted = true;
-        this.form.reset({ status: 'Applied' });
+        this.applicationData.notifyChanged();
+        this.dialogRef.close();
       });
     }
+  }
+
+  onCancel(): void {
+    this.dialogRef.close();
   }
 }

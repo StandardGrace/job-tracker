@@ -1,25 +1,34 @@
-import { Component, OnInit, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
+import { DatePipe } from '@angular/common';
+import { Dialog } from '@angular/cdk/dialog';
 import { ApplicationData, Application } from '../../services/application-data';
+import { ApplicationForm } from '../application-form/application-form';
 
 @Component({
   selector: 'app-application-board',
-  imports: [CdkDropList, CdkDrag, DatePipe ],
+  imports: [CdkDropList, CdkDrag, DatePipe],
   templateUrl: './application-board.html',
   styleUrl: './application-board.scss'
 })
 export class ApplicationBoard implements OnInit {
-  @Output() editRequested = new EventEmitter<Application>();
   statuses = ['Applied', 'Screening', 'Interview', 'Offer', 'Rejected'];
   columns: { [key: string]: Application[] } = {};
 
   constructor(
     private applicationData: ApplicationData,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private dialog: Dialog
   ) {}
 
   ngOnInit(): void {
+    this.loadApplications();
+    this.applicationData.refresh$.subscribe(() => {
+      this.loadApplications();
+    });
+  }
+
+  private loadApplications(): void {
     this.applicationData.getAll().subscribe(applications => {
       this.groupByStatus(applications);
       this.cdr.detectChanges();
@@ -32,8 +41,12 @@ export class ApplicationBoard implements OnInit {
     }
   }
 
-  onEditClick(application: Application): void {
-    this.editRequested.emit(application);
+  openCreateModal(): void {
+    this.dialog.open(ApplicationForm, { data: null });
+  }
+
+  openEditModal(application: Application): void {
+    this.dialog.open(ApplicationForm, { data: application });
   }
 
   drop(event: CdkDragDrop<Application[]>, newStatus: string): void {

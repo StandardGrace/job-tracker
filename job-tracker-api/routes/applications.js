@@ -14,6 +14,7 @@ router.get('/', async (req, res) => { // GET route to fetch all applications
 router.post('/', async (req, res) => { // POST route to create a new application
   try {
     const application = new Application(req.body); // Create a new Application instance with the request body
+    application.statusHistory.push({ status: application.status, date: application.dateApplied }); // Add the initial status to the statusHistory array
     const saved = await application.save(); // Save the application to the database
     res.status(201).json(saved); // Respond with the saved application and a 201 status code
   } catch (err) { // error handling

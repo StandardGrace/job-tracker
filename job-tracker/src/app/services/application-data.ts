@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs'; // Importing necessary modules from RxJS to handle asynchronous data streams and events between components.
 
 export interface Application {
   _id?: string;
@@ -18,6 +18,8 @@ export interface Application {
 })
 export class ApplicationData {
   private apiUrl = 'http://localhost:3000/api/applications';
+  private refreshSource = new Subject<void>();
+  refresh$ = this.refreshSource.asObservable();
 
   constructor(private http: HttpClient) {}
 
@@ -39,5 +41,9 @@ export class ApplicationData {
 
   delete(id: string): Observable<{ message: string; application: Application }> {
     return this.http.delete<{ message: string; application: Application }>(`${this.apiUrl}/${id}`);
+  }
+
+  notifyChanged(): void {
+    this.refreshSource.next();
   }
 }

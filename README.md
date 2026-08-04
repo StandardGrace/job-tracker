@@ -74,6 +74,24 @@ Each job application is stored as a single MongoDB document containing the compa
 }
 ```
 
+## Running Locally (Quick Reference)
+
+Already set up? Two terminals:
+
+```bash
+# Terminal 1 — API
+cd job-tracker-api
+npm run dev
+```
+
+```bash
+# Terminal 2 — Angular
+cd job-tracker
+ng serve
+```
+
+Then open `http://localhost:4200`. First-time setup (installing dependencies, creating `.env`) is below under Getting Started.
+
 ## Getting Started
 
 ### Backend
@@ -116,13 +134,15 @@ The app runs on `http://localhost:4200`.
 
 ## Planned Enhancement: Board Sort, Search & Card Detail Modal
 
-Not yet built — logged here so the reasoning isn't lost before it's picked up:
+**Update:** create/edit now happens through a modal (`@angular/cdk/dialog`), not a standing on-page form — see Engineering Decisions for why. That proves out the CDK Dialog pattern for the still-pending piece below.
+
+Not yet built:
 
 - **Sort each column by `dateApplied`, newest first** — rather than whatever order MongoDB happens to return.
 - **A search box to filter the board down** ("drill-down by search"), most likely by company name.
 - **Technical note for whoever builds this (probably future-me):** Angular CDK's drag-and-drop is sensitive to the exact array reference passed via `[cdkDropListData]`. Filtering should hide non-matching cards for *display* rather than generating a new filtered array on every keystroke — regenerating the underlying array mid-drag can break CDK's drag mechanics. The `columns` data structure driving drag-and-drop should stay untouched; search should only affect what's visible.
-- **Card detail modal** — clicking a card (distinct from the Edit button) should open a read-only modal showing the full picture: status change timeline and associated documents/folder link. Decided to hold off building this until Phase 5 (documents/folder link) is done, so the modal shows both status history and documents together rather than being built twice. Chosen interaction: a modal popup, not an inline-expanding card — Angular CDK's Dialog module (`@angular/cdk/dialog`) is already installed via the CDK package and is a natural fit, since it avoids pulling in the larger Angular Material library just for one dialog.
-- **Depends on Phase 6's status history work actually populating `statusHistory`** — right now that field still sits empty on every application, since nothing yet appends to it when status changes. The modal has nothing to show until that's built.
+- **Card detail modal (a second, separate modal from the create/edit one)** — clicking a card should open a *read-only* view showing the status change timeline and the folder link. Blocked on the `PUT` route actually appending to `statusHistory` on status change (only the `POST` route seeds an initial entry so far — see Engineering Decisions).
+- **Scope clarified:** the release bar for "actually useful, not just a demo" is: date applied visible on the card (done), the folder link visible/clickable (not yet), and the status-change story visible in the detail modal (blocked on the above). Per-document links (résumé/cover letter/job posting as separate entries) were considered and explicitly **descoped from MVP** — the shared Drive folder link already gets you to those documents; a `documents` FormArray for individually-labeled links is real value for a post-MVP version, not required for release. Moved to its own backlog ticket.
 
 ## Roadmap
 
@@ -160,6 +180,10 @@ A running log of choices made along the way, and why — mainly for future-me, s
 - **Running on Node.js 24 (LTS), not an odd-numbered "Current" release:** development originally started on Node 25, which turned out to already be end-of-life. Switched to Node 24 (active LTS support through April 2028) via nvm-windows. No dependencies in this project use native/compiled bindings, so the switch required no code changes — just reinstalling `node_modules` in both projects as a precaution.
 - **Port conflicts deferred to Docker, not app code:** the homelab deployment box already has something running on port 3000. Rather than changing the app's default port in code, this will be resolved with a host-to-container port mapping in `docker-compose.yml` (e.g. `"3050:3000"`) when Phase 7 is built — the app itself stays unaware of what port it's exposed as externally.
 - **`returnDocument: 'after'` instead of `new: true`:** Mongoose deprecated the `new` option on `findOneAndUpdate`/`findByIdAndUpdate` in favor of `returnDocument: 'after'`, matching the underlying MongoDB driver's own option naming. Updated the `PUT` route in `routes/applications.js` accordingly. Purely a deprecation fix, not a behavior change — `runValidators: true` and everything else about the route stayed the same.
+- **Create/edit moved from a standing on-page form to a modal (`@angular/cdk/dialog`).** The original design kept `ApplicationForm` permanently visible on the page, fed by `@Input()`/`@Output()` through the parent (`app.ts`). This surfaced a real bug: after editing an application, nothing ever reset the "currently editing" state back to null, so the form stayed stuck showing the just-edited application — a new company couldn't be entered without a full page refresh. Rather than patch that specific bug, moved to opening `ApplicationForm` dynamically via CDK's `Dialog` service instead: the board now injects `Dialog` directly and calls `dialog.open(ApplicationForm, { data })`, passing `null` for create or an `Application` for edit. The form reads that via the `DIALOG_DATA` injection token and closes itself with `DialogRef` on save/cancel. Because a fresh component instance is created every time the modal opens, there's no leftover state to reset — the bug class is eliminated by construction, not patched around. `app.ts` got simpler as a result: the form import, the `editingApplication` property, and the `onEditRequested()` handler were all removed, since the board now owns opening the modal itself rather than asking a parent to do it.
+- **Cross-component "something changed" signal via a `Subject` in `ApplicationData`.** Once create/edit moved into a modal, the board needed to know when to refresh without a page reload — but the board and the modal don't have a parent/child relationship the way `@Input()`/`@Output()` requires. Added `refresh$` (a public, read-only `Observable`) and a private `Subject` backing it to the shared service, plus a `notifyChanged()` method. Any component can call `notifyChanged()` after a mutation; the board subscribes to `refresh$` in `ngOnInit` and re-fetches whenever it fires. This is a standard lightweight pattern for letting sibling components — with no direct relationship to each other — coordinate through a shared singleton service instead.
+- **`POST` now seeds an initial `statusHistory` entry** using `application.status` and `application.dateApplied` (schema defaults already applied by that point, not `new Date()`), so every application's story starts at "Applied" on the date actually applied, not the date it happened to be typed into the tracker. The `PUT` route doesn't yet append further entries on subsequent status changes — that's the next piece of Phase 6, still pending.
+- **Cancel button uses `(mousedown)` instead of `(click)`.** Clicking Cancel while a required field (e.g. Company) still had focus caused a validation error to flash before the modal closed, sometimes requiring a second click. Root cause: the browser fires events in the order `mousedown → blur → mouseup → click`; Angular's reactive forms mark a field `touched` on `blur`, and the resulting re-render can shift the button's layout between `mousedown` and `mouseup`, occasionally causing the two to land on different elements and `click` to never fire at all (a `click` event requires `mousedown` and `mouseup` on the same element). Binding to `mousedown` instead means Cancel fires and starts closing the modal before `blur` (and the validation it triggers) ever happens.
 
 ## Deployment Notes
 
