@@ -31,7 +31,7 @@
             <div class="card" cdkDrag (click)="openDetailModal(application)">
               <strong>{{ application.company }}</strong>
               <div>{{ application.role }}</div>
-              <div>Applied: {{ application.dateApplied | date:'mediumDate' }}</div>
+              <div>Applied: {{ application.dateApplied | date:'d MMMM y':'UTC' }}</div>
               <button (click)="$event.stopPropagation(); openEditModal(application)">Edit</button>
             </div>
           }

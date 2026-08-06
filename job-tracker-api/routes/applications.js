@@ -43,8 +43,14 @@ router.put('/:id', async (req, res) => { // PUT route to update an application b
     }
 
     const statusChanged = req.body.status && req.body.status !== application.status; // Compare before overwriting
+    const dateAppliedChanged = req.body.dateApplied &&
+      new Date(req.body.dateApplied).getTime() !== new Date(application.dateApplied).getTime(); // Compare before overwriting
 
     application.set(req.body); // Apply only the fields present in req.body
+
+    if (dateAppliedChanged && application.statusHistory.length > 0) {
+      application.statusHistory[0].date = application.dateApplied; // Keep the seed "Applied" entry in sync with a corrected date
+    }
 
     if (statusChanged) {
       application.statusHistory.push({ status: application.status, date: new Date() }); // Log the change

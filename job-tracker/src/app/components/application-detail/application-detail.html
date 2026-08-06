@@ -14,7 +14,7 @@
       @for (entry of application.statusHistory; track $index) {
         <li>
           <strong>{{ entry.status }}</strong>
-          — {{ entry.date | date:'mediumDate' }}
+          — {{ entry.date | date:'d MMMM y':'UTC' }}
         </li>
       }
     </ul>
