@@ -64,7 +64,8 @@
               "buildTarget": "job-tracker:build:production"
             },
             "development": {
-              "buildTarget": "job-tracker:build:development"
+              "buildTarget": "job-tracker:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

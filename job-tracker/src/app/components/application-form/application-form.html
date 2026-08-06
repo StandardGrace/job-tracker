@@ -1,7 +1,7 @@
 <h3>{{ editingApplication ? 'Edit Application' : 'Add Application' }}</h3>
 
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
-  <div>
+  <div class="form-field">
     <label for="company">Company</label>
     <input id="company" type="text" formControlName="company">
     @if (form.get('company')?.invalid && form.get('company')?.touched) {
@@ -9,7 +9,7 @@
     }
   </div>
 
-  <div>
+  <div class="form-field">
     <label for="role">Role</label>
     <input id="role" type="text" formControlName="role">
     @if (form.get('role')?.invalid && form.get('role')?.touched) {
@@ -17,7 +17,7 @@
     }
   </div>
 
-  <div>
+  <div class="form-field">
     <label for="status">Status</label>
     <select id="status" formControlName="status">
       <option value="Applied">Applied</option>
@@ -28,17 +28,22 @@
     </select>
   </div>
 
-  <div>
+  <div class="form-field">
+    <label for="dateApplied">Date Applied</label>
+    <input id="dateApplied" type="date" formControlName="dateApplied">
+  </div>
+
+  <div class="form-field">
     <label for="source">Source</label>
     <input id="source" type="text" formControlName="source">
   </div>
 
-  <div>
+  <div class="form-field">
     <label for="notes">Notes</label>
     <textarea id="notes" formControlName="notes"></textarea>
   </div>
 
-  <div>
+  <div class="form-field">
     <label for="folderLink">Folder Link</label>
     <input id="folderLink" type="url" formControlName="folderLink">
   </div>
@@ -47,7 +52,7 @@
     <div class="error-banner">{{ submitError }}</div>
   }
 
-  <div>
+  <div class="form-actions">
     <button type="submit">{{ editingApplication ? 'Update Application' : 'Add Application' }}</button>
     <button type="button" (mousedown)="onCancel()">Cancel</button>
   </div>

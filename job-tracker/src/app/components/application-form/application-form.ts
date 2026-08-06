@@ -20,17 +20,25 @@ export class ApplicationForm {
     private cdr: ChangeDetectorRef,
     @Inject(DIALOG_DATA) public editingApplication: Application | null
   ) {
+    const todayStr = new Date().toISOString().slice(0, 10);
+
     this.form = this.fb.group({
       company: ['', Validators.required],
       role: ['', Validators.required],
       status: ['Applied'],
+      dateApplied: [todayStr],
       source: [''],
       notes: [''],
       folderLink: ['']
     });
 
     if (this.editingApplication) {
-      this.form.patchValue(this.editingApplication);
+      this.form.patchValue({
+        ...this.editingApplication,
+        dateApplied: this.editingApplication.dateApplied
+          ? this.editingApplication.dateApplied.slice(0, 10)
+          : todayStr
+      });
     }
   }
 
