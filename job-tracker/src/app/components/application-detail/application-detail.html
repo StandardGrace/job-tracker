@@ -9,18 +9,28 @@
   }
 
   <h3>Status History</h3>
-  @if (application.statusHistory && application.statusHistory.length > 0) {
-    <ul class="timeline">
-      @for (entry of application.statusHistory; track $index) {
-        <li>
-          <strong>{{ entry.status }}</strong>
-          — {{ entry.date | date:'d MMMM y':'UTC' }}
-        </li>
-      }
-    </ul>
-  } @else {
-    <p>No status history yet.</p>
-  }
+  <form [formGroup]="form" (ngSubmit)="saveChanges()">
+    @if (entriesArray.length > 0) {
+      <ul class="timeline" formArrayName="entries">
+        @for (entry of entriesArray.controls; track $index; let i = $index) {
+          <li [formGroupName]="i">
+            <strong>{{ entry.get('status')?.value }}</strong>
+            <input type="date" formControlName="date">
+            <button type="button" class="delete-entry" (click)="removeEntry(i)">✕</button>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p>No status history left.</p>
+    }
 
-  <button (click)="close()">Close</button>
+    @if (saveError) {
+      <div class="error-banner">{{ saveError }}</div>
+    }
+
+    <div class="detail-actions">
+      <button type="submit">Save Changes</button>
+      <button type="button" (mousedown)="close()">Close</button>
+    </div>
+  </form>
 </div>

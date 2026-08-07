@@ -16,9 +16,45 @@
 .timeline {
   list-style: none;
   padding: 0;
+  margin-bottom: 1.25rem;
 }
 
 .timeline li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   padding: 0.5rem 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--color-border);
+
+  strong {
+    flex: 1;
+  }
+}
+
+.delete-entry {
+  background: transparent;
+  color: var(--color-text-muted);
+  padding: 0.25rem 0.5rem;
+
+  &:hover {
+    color: #ff6b6b;
+    opacity: 1;
+  }
+}
+
+.error-banner {
+  background: #fee;
+  border: 1px solid #c00;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 0.75rem;
+
+  button:not(.delete-entry) {
+    flex: 1;
+  }
 }
